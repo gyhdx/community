@@ -19,5 +19,7 @@ public interface UserService {
 
     LoginTicket findLoginTicket(String ticket);
 
-    public int updateHeader(int userId, String headerUrl);
+    int updateHeader(int userId, String headerUrl);
+
+    User findUserByName(String username);
 }

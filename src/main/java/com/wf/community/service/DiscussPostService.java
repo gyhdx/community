@@ -17,4 +17,10 @@ public interface DiscussPostService  {
     List<DiscussPost> getDiscussPosts(int userId , int offset , int limit);
 
     int getDiscussPostRows(int userId);
+
+    int addDiscussPost(DiscussPost post);
+
+    DiscussPost findDiscussPostById(int id);
+
+    int updateCommentCount(int id, int commentCount);
 }
