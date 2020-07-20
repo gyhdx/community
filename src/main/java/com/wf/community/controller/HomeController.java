@@ -5,6 +5,9 @@ import com.wf.community.entity.Page;
 import com.wf.community.entity.User;
 import com.wf.community.service.DiscussPostService;
 import com.wf.community.service.UserService;
+import com.wf.community.service.impl.LikeService;
+import com.wf.community.util.CommunityConstant;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,13 +24,16 @@ import java.util.Map;
  * @Date 2020/7/11 0:36
  */
 @Controller
-public class HomeController {
+public class HomeController implements CommunityConstant {
 
     @Resource
     private DiscussPostService discussPostService;
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private LikeService likeService;
 
     @GetMapping("/index")
     public String getIndexPage(Model model , Page page){
@@ -39,11 +45,15 @@ public class HomeController {
         List<Map<String,Object>> discussPosts = new ArrayList<>();
 
         if (lists != null){
-            for (DiscussPost list : lists) {
-                Map<String,Object> map = new HashMap<>();
-                map.put("post",list);
-                User user = userService.findUserById(list.getUserId());
-                map.put("user",user);
+            for (DiscussPost post : lists) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("post", post);
+                User user = userService.findUserById(post.getUserId());
+                map.put("user", user);
+
+                long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, post.getId());
+                map.put("likeCount", likeCount);
+
                 discussPosts.add(map);
             }
         }

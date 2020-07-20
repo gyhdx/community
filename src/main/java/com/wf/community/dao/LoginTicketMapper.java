@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Component;
 
 @Mapper
+@Deprecated
 public interface LoginTicketMapper {
 
     @Insert({

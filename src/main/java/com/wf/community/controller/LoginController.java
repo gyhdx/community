@@ -4,9 +4,12 @@ import com.google.code.kaptcha.Producer;
 import com.wf.community.entity.User;
 import com.wf.community.service.UserService;
 import com.wf.community.util.CommunityConstant;
+import com.wf.community.util.CommunityUtil;
+import com.wf.community.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +23,7 @@ import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Description TODO
@@ -37,6 +41,9 @@ public class LoginController implements CommunityConstant {
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
+
+    @Resource
+    private RedisTemplate redisTemplate;
 
     @GetMapping("/register")
     public String getRegisterPage() {
@@ -86,8 +93,19 @@ public class LoginController implements CommunityConstant {
         String text = kaptchaProducer.createText();
         BufferedImage image = kaptchaProducer.createImage(text);
 
-        //保存验证码
-        session.setAttribute("kaptcha",text);
+//        //保存验证码
+//        session.setAttribute("kaptcha",text);
+
+        //验证码的归属
+        String s = CommunityUtil.generateUUID();
+        Cookie cookie = new Cookie("captchaOwner", s);
+        cookie.setMaxAge(60);
+        cookie.setPath(contextPath);
+        response.addCookie(cookie);
+
+        // 将验证码存入redis
+        String kaptchaKey = RedisKeyUtil.getKaptchaKey(s);
+        redisTemplate.opsForValue().set(kaptchaKey, text, 60, TimeUnit.SECONDS);
 
         //输出图片
         response.setContentType("image/png");
@@ -103,9 +121,16 @@ public class LoginController implements CommunityConstant {
 
     @PostMapping("/login")
     public String login(String username, String password, String code, boolean rememberme,
-                        Model model, HttpSession session, HttpServletResponse response) {
+                        Model model,/* HttpSession session, */HttpServletResponse response,
+                        @CookieValue("captchaOwner") String cookieValue) {
         // 检查验证码
-        String kaptcha = (String) session.getAttribute("kaptcha");
+//        String kaptcha = (String) session.getAttribute("kaptcha");
+        String kaptcha = null;
+        if (StringUtils.isNoneBlank(cookieValue)){
+            String kaptchaKey = RedisKeyUtil.getKaptchaKey(cookieValue);
+            kaptcha = (String) redisTemplate.opsForValue().get(kaptchaKey);
+        }
+
         if (StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)) {
             model.addAttribute("codeMsg", "验证码不正确!");
             return "/site/login";
