@@ -2,6 +2,7 @@ package com.wf.community.config;
 
 import com.wf.community.controller.interceptor.LoginRequiredInterceptor;
 import com.wf.community.controller.interceptor.LoginticketInterceptor;
+import com.wf.community.controller.interceptor.MessageInterceptor;
 import com.wf.community.controller.interceptor.MyInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -26,6 +27,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Resource
     private LoginRequiredInterceptor loginRequiredInterceptor;
 
+    @Resource
+    private MessageInterceptor messageInterceptor;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(interceptor)
@@ -38,6 +42,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/**/*.css","/**/*.js" , "/**/*.png" , "/**/*.jpg" , "/**/*.jpeg");
 
         registry.addInterceptor(loginRequiredInterceptor)
+                .excludePathPatterns("/**/*.css","/**/*.js" , "/**/*.png" , "/**/*.jpg" , "/**/*.jpeg");
+
+        registry.addInterceptor(messageInterceptor)
                 .excludePathPatterns("/**/*.css","/**/*.js" , "/**/*.png" , "/**/*.jpg" , "/**/*.jpeg");
     }
 }

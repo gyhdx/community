@@ -1,7 +1,9 @@
 package com.wf.community.controller;
 
+import com.wf.community.entity.Event;
 import com.wf.community.entity.Page;
 import com.wf.community.entity.User;
+import com.wf.community.event.EventProducer;
 import com.wf.community.service.UserService;
 import com.wf.community.service.impl.FollowService;
 import com.wf.community.util.CommunityConstant;
@@ -27,6 +29,9 @@ import java.util.Map;
 public class FollowController implements CommunityConstant {
 
     @Resource
+    private EventProducer eventProducer;
+
+    @Resource
     private FollowService followService;
 
     @Resource
@@ -40,6 +45,15 @@ public class FollowController implements CommunityConstant {
     public String follow(int entityType, int entityId){
         User user = hostHolder.getUser();
         followService.follow(user.getId(), entityType, entityId);
+
+        // 触发关注事件
+        Event event = new Event()
+                .setTopic(TOPIC_FOLLOW)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(entityType)
+                .setEntityId(entityId)
+                .setEntityUserId(entityId);
+        eventProducer.fireEvent(event);
 
         return CommunityUtil.getJSONString(0, "已关注");
     }
