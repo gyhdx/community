@@ -1,9 +1,6 @@
 package com.wf.community.config;
 
-import com.wf.community.controller.interceptor.LoginRequiredInterceptor;
-import com.wf.community.controller.interceptor.LoginticketInterceptor;
-import com.wf.community.controller.interceptor.MessageInterceptor;
-import com.wf.community.controller.interceptor.MyInterceptor;
+import com.wf.community.controller.interceptor.*;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -24,11 +21,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Resource
     private LoginticketInterceptor loginticketInterceptor;
 
-    @Resource
-    private LoginRequiredInterceptor loginRequiredInterceptor;
+//    @Resource
+//    private LoginRequiredInterceptor loginRequiredInterceptor;
 
     @Resource
     private MessageInterceptor messageInterceptor;
+
+    @Resource
+    private DataInterceptor dateInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -41,10 +41,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(loginticketInterceptor)
                 .excludePathPatterns("/**/*.css","/**/*.js" , "/**/*.png" , "/**/*.jpg" , "/**/*.jpeg");
 
-        registry.addInterceptor(loginRequiredInterceptor)
-                .excludePathPatterns("/**/*.css","/**/*.js" , "/**/*.png" , "/**/*.jpg" , "/**/*.jpeg");
+//        registry.addInterceptor(loginRequiredInterceptor)
+//                .excludePathPatterns("/**/*.css","/**/*.js" , "/**/*.png" , "/**/*.jpg" , "/**/*.jpeg");
 
         registry.addInterceptor(messageInterceptor)
+                .excludePathPatterns("/**/*.css","/**/*.js" , "/**/*.png" , "/**/*.jpg" , "/**/*.jpeg");
+
+        registry.addInterceptor(dateInterceptor)
                 .excludePathPatterns("/**/*.css","/**/*.js" , "/**/*.png" , "/**/*.jpg" , "/**/*.jpeg");
     }
 }

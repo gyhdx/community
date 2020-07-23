@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,7 @@ import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -154,7 +156,9 @@ public class LoginController implements CommunityConstant {
 
     @GetMapping("/logout")
     public String logout(@CookieValue("ticket")String ticket){
+//        Executors.newFixedThreadPool()
         userService.logout(ticket);
+        SecurityContextHolder.clearContext();
         return "redirect:/login";
     }
 }
