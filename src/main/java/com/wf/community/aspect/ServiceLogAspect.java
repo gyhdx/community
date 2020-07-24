@@ -20,8 +20,8 @@ import java.util.Date;
  * @Author gyhdx
  * @Date 2020/7/19 23:18
  */
-@Component
-@Aspect
+//@Component
+//@Aspect
 public class ServiceLogAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceLogAspect.class);

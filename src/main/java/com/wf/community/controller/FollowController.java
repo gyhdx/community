@@ -9,6 +9,7 @@ import com.wf.community.service.impl.FollowService;
 import com.wf.community.util.CommunityConstant;
 import com.wf.community.util.CommunityUtil;
 import com.wf.community.util.HostHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,34 +17,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @Description TODO
- * @Author gyhdx
- * @Date 2020/7/20 14:49
- */
 @Controller
 public class FollowController implements CommunityConstant {
 
-    @Resource
-    private EventProducer eventProducer;
-
-    @Resource
+    @Autowired
     private FollowService followService;
 
-    @Resource
+    @Autowired
     private HostHolder hostHolder;
 
-    @Resource
+    @Autowired
     private UserService userService;
+
+    @Autowired
+    private EventProducer eventProducer;
 
     @RequestMapping(path = "/follow", method = RequestMethod.POST)
     @ResponseBody
-    public String follow(int entityType, int entityId){
+    public String follow(int entityType, int entityId) {
         User user = hostHolder.getUser();
+
         followService.follow(user.getId(), entityType, entityId);
 
         // 触发关注事件
@@ -55,16 +51,17 @@ public class FollowController implements CommunityConstant {
                 .setEntityUserId(entityId);
         eventProducer.fireEvent(event);
 
-        return CommunityUtil.getJSONString(0, "已关注");
+        return CommunityUtil.getJSONString(0, "已关注!");
     }
 
     @RequestMapping(path = "/unfollow", method = RequestMethod.POST)
     @ResponseBody
-    public String unfollow(int entityType, int entityId){
+    public String unfollow(int entityType, int entityId) {
         User user = hostHolder.getUser();
+
         followService.unFollow(user.getId(), entityType, entityId);
 
-        return CommunityUtil.getJSONString(0, "已取消关注");
+        return CommunityUtil.getJSONString(0, "已取消关注!");
     }
 
     @RequestMapping(path = "/followees/{userId}", method = RequestMethod.GET)
@@ -122,4 +119,5 @@ public class FollowController implements CommunityConstant {
 
         return followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);
     }
+
 }

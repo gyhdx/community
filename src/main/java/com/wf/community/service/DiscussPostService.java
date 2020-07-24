@@ -14,7 +14,7 @@ import java.util.List;
  */
 public interface DiscussPostService  {
 
-    List<DiscussPost> getDiscussPosts(int userId , int offset , int limit);
+    List<DiscussPost> getDiscussPosts(int userId, int offset, int limit, int orderMode);
 
     int getDiscussPostRows(int userId);
 
@@ -29,4 +29,6 @@ public interface DiscussPostService  {
     int updateStatus(int id, int status);
 
     int updateType(int id, int type);
+
+    int deletePost(int id);
 }

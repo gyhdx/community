@@ -7,40 +7,40 @@ import com.wf.community.service.impl.LikeService;
 import com.wf.community.util.CommunityConstant;
 import com.wf.community.util.CommunityUtil;
 import com.wf.community.util.HostHolder;
-import org.springframework.context.annotation.Configuration;
+import com.wf.community.util.RedisKeyUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @Description TODO
- * @Author gyhdx
- * @Date 2020/7/20 0:43
- */
 @Controller
 public class LikeController implements CommunityConstant {
 
-    @Resource
-    private EventProducer eventProducer;
-
-    @Resource
+    @Autowired
     private LikeService likeService;
 
-    @Resource
+    @Autowired
     private HostHolder hostHolder;
 
-    @PostMapping("/like")
+    @Autowired
+    private EventProducer eventProducer;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @RequestMapping(path = "/like", method = RequestMethod.POST)
     @ResponseBody
-    public String like(int entityType, int entityId,  int entityUserId, int postId){
+    public String like(int entityType, int entityId, int entityUserId, int postId) {
         User user = hostHolder.getUser();
 
-        //点赞
+        // 点赞
         likeService.like(user.getId(), entityType, entityId, entityUserId);
+
         // 数量
         long likeCount = likeService.findEntityLikeCount(entityType, entityId);
         // 状态
@@ -62,6 +62,13 @@ public class LikeController implements CommunityConstant {
             eventProducer.fireEvent(event);
         }
 
+        if(entityType == ENTITY_TYPE_POST) {
+            // 计算帖子分数
+            String redisKey = RedisKeyUtil.getPostScoreKey();
+            redisTemplate.opsForSet().add(redisKey, postId);
+        }
+
         return CommunityUtil.getJSONString(0, null, map);
     }
+
 }

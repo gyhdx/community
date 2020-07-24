@@ -10,45 +10,43 @@ import com.wf.community.util.CommunityConstant;
 import com.wf.community.util.CommunityUtil;
 import com.wf.community.util.HostHolder;
 import com.wf.community.util.RedisKeyUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.annotation.Resource;
 import java.util.*;
 
-/**
- * @Description TODO
- * @Author gyhdx
- * @Date 2020/7/16 15:44
- */
 @Controller
 @RequestMapping("/discuss")
 public class DiscussPostController implements CommunityConstant {
 
-    @Resource
+    @Autowired
     private DiscussPostService discussPostService;
 
-    @Resource
+    @Autowired
     private HostHolder hostHolder;
 
-    @Resource
+    @Autowired
     private UserService userService;
 
-    @Resource
+    @Autowired
     private CommentService commentService;
 
-    @Resource
+    @Autowired
     private LikeService likeService;
 
-    @Resource
+    @Autowired
     private EventProducer eventProducer;
 
-    @Resource
+    @Autowired
     private RedisTemplate redisTemplate;
 
-    @PostMapping("/add")
+    @RequestMapping(path = "/add", method = RequestMethod.POST)
     @ResponseBody
     public String addDiscussPost(String title, String content) {
         User user = hostHolder.getUser();
@@ -63,11 +61,23 @@ public class DiscussPostController implements CommunityConstant {
         post.setCreateTime(new Date());
         discussPostService.addDiscussPost(post);
 
+        // 触发发帖事件
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(user.getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(post.getId());
+        eventProducer.fireEvent(event);
+
+        // 计算帖子分数
+        String redisKey = RedisKeyUtil.getPostScoreKey();
+        redisTemplate.opsForSet().add(redisKey, post.getId());
+
         // 报错的情况,将来统一处理.
         return CommunityUtil.getJSONString(0, "发布成功!");
     }
 
-    @GetMapping("/detail/{discussPostId}")
+    @RequestMapping(path = "/detail/{discussPostId}", method = RequestMethod.GET)
     public String getDiscussPost(@PathVariable("discussPostId") int discussPostId, Model model, Page page) {
         // 帖子
         DiscussPost post = discussPostService.findDiscussPostById(discussPostId);
@@ -158,6 +168,14 @@ public class DiscussPostController implements CommunityConstant {
     public String setTop(int id) {
         discussPostService.updateType(id, 1);
 
+        // 触发发帖事件
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+
         return CommunityUtil.getJSONString(0);
     }
 
@@ -198,4 +216,5 @@ public class DiscussPostController implements CommunityConstant {
 
         return CommunityUtil.getJSONString(0);
     }
+
 }

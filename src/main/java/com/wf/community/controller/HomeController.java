@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -38,12 +39,13 @@ public class HomeController implements CommunityConstant {
     private LikeService likeService;
 
     @GetMapping("/index")
-    public String getIndexPage(Model model , Page page){
+    public String getIndexPage(Model model , Page page,
+                               @RequestParam(name = "orderMode", defaultValue = "0") int orderMode){
         // springMVC 会自动生成model和page实例，并且会把page自动注入进model。
         page.setRows(discussPostService.getDiscussPostRows(0));
-        page.setPath("/index");
+        page.setPath("/index?orderMode=" + orderMode);
 
-        List<DiscussPost> lists = discussPostService.getDiscussPosts(0, page.getOffset(), page.getLimit());
+        List<DiscussPost> lists = discussPostService.getDiscussPosts(0, page.getOffset(), page.getLimit(), orderMode);
         List<Map<String,Object>> discussPosts = new ArrayList<>();
 
         if (lists != null){
@@ -60,6 +62,7 @@ public class HomeController implements CommunityConstant {
             }
         }
         model.addAttribute("discussPosts",discussPosts);
+        model.addAttribute("orderMode", orderMode);
         return "/index";
     }
 
